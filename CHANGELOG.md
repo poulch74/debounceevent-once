@@ -3,6 +3,11 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2018-07-12
+### Changed
+- forked to github from Xose Pérez <xose dot perez at gmail dot com> bitbucket repo
+- add BUTTON_ONCE mode for manually resetable( reset_once() func added) oneshot button (for alarm events for eaxmple)
+
 ## [2.0.2] 2018-06-23
 ### Changed
 - Moved license to LGPL-3.0

@@ -28,6 +28,7 @@
 #define BUTTON_SWITCH           1
 #define BUTTON_DEFAULT_HIGH     2
 #define BUTTON_SET_PULLUP       4
+#define BUTTON_ONCE             8
 
 #define DEBOUNCE_DELAY          50
 #define REPEAT_DELAY            500
@@ -49,11 +50,13 @@ class DebounceEvent {
         bool pressed() { return (_status != _defaultStatus); }
         unsigned long getEventLength() { return _event_length; }
         unsigned long getEventCount() { return _event_count; }
-
+        void reset_once() { _once = false; }
     private:
 
         uint8_t _pin;
         uint8_t _mode;
+        bool _once;
+        bool _once_mode;
         bool _status;
         bool _ready = false;
         bool _reset_count = true;

@@ -40,6 +40,8 @@ void DebounceEvent::_init(uint8_t pin, uint8_t mode, unsigned long delay, unsign
     _status = _defaultStatus = ((mode & BUTTON_DEFAULT_HIGH) > 0);
     _delay = delay;
     _repeat = repeat;
+    _once_mode = ((mode & BUTTON_ONCE) > 0) ;
+    _once = false;
 
     // set up button
     if (_pin == 16) {
@@ -61,58 +63,63 @@ void DebounceEvent::_init(uint8_t pin, uint8_t mode, unsigned long delay, unsign
 unsigned char DebounceEvent::loop() {
 
     unsigned char event = EVENT_NONE;
-
-    if (digitalRead(_pin) != _status) {
-
-        // Debounce
-        unsigned long start = millis();
-        while (millis() - start < _delay) delay(1);
+    
+    while(!_once) {
 
         if (digitalRead(_pin) != _status) {
 
-            _status = !_status;
+            // Debounce
+            unsigned long start = millis();
+            while (millis() - start < _delay) delay(1);
 
-            if (_mode == BUTTON_SWITCH) {
+            if (digitalRead(_pin) != _status) {
 
-                event = EVENT_CHANGED;
+                _status = !_status;
 
-            } else {
+                if (_mode == BUTTON_SWITCH) {
 
-                // released
-                if (_status == _defaultStatus) {
+                    event = EVENT_CHANGED;
 
-                    _event_length = millis() - _event_start;
-                    _ready = true;
-
-                // pressed
                 } else {
 
-                    event = EVENT_PRESSED;
-                    _event_start = millis();
-                    _event_length = 0;
-                    if (_reset_count) {
-                        _event_count = 1;
-                        _reset_count = false;
+                    // released
+                    if (_status == _defaultStatus) {
+
+                        _event_length = millis() - _event_start;
+                        _ready = true;
+
+                    // pressed
                     } else {
-                        ++_event_count;
+
+                        event = EVENT_PRESSED;
+                        _event_start = millis();
+                        _event_length = 0;
+                        if (_reset_count) {
+                            _event_count = 1;
+                            _reset_count = false;
+                        } else {
+                            ++_event_count;
+                        }
+                        _ready = false;
+
                     }
-                    _ready = false;
 
                 }
 
             }
-
         }
-    }
 
-    if (_ready && (millis() - _event_start > _repeat)) {
-        _ready = false;
-        _reset_count = true;
-        event = EVENT_RELEASED;
-    }
+        if (_ready && (millis() - _event_start > _repeat)) {
+            _ready = false;
+            _reset_count = true;
+            event = EVENT_RELEASED;
+        }
 
-    if (event != EVENT_NONE) {
-        if (_callback) _callback(_pin, event, _event_count, _event_length);
+        if (event != EVENT_NONE) {
+            if (_once_mode) _once = true; 
+            if (_callback) _callback(_pin, event, _event_count, _event_length);
+        }
+
     }
 
     return event;
